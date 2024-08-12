@@ -1,3 +1,5 @@
 Makefile
 systemd.service
 systemd.timer
+
+.idea/

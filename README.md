@@ -1,16 +1,22 @@
 # KDE Auto Day/Night Mode
-A simple Python script for selecting and automatic switching of day and night theme for KDE Plasma.
+A simple Python script for selecting and automatic switching of day and night theme and brightness for KDE Plasma.
 
 ## Requirements
+- Make sure you have Python3 (usually comes by default with major distributions).
 - Install `geoclue2` package.
 	- ArchLinux: `pacman -S geoclue`
 	- CentOS: `sudo dnf -y install geoclue2` or `sudo yum -y install geoclue2`
 	- Debian: `sudo apt-get install geoclue-2.0`
-- Make sure you have Python3 (usually comes by default with major distributions).
-
+- Install `ddcutil` package and add the desired user to `i2c` group.
+  - ArchLinux: `pacman -S ddcutil && sudo usermod -aG i2c <username>`
+- Install `qt6-tools-desktop` package.
+  - ArchLinux: `yay -S ddcutil`
+- Install `ddcci-plasmoid-backend` package. See https://github.com/davidhi7/ddcci-plasmoid for more information.
+  - Python: `pip install --break-system-packages --user ddcci-plasmoid-backend`
+    qt6-tools-desktop
 
 ## Install and Run Automatically
-Use the commands below to install as a Systemd service and a timer. You will be prompted to select a day theme and a night theme. If you need to set any extra options, read the [Running Manually](#running-manually) section.
+Use the commands below to install as a Systemd service and a timer. You will be prompted to select a day/night theme and brightness. If you need to set any extra options, read the [Running Manually](#running-manually) section.
 
 ```bash
 ./configure && make install

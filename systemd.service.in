@@ -3,7 +3,7 @@ Description=Automatic day/night mode switcher
 
 [Service]
 Type=simple
-ExecStart=python /usr/local/bin/SERVICE_NAME.py -d DAY -n NIGHT
+ExecStart=python /usr/local/bin/SERVICE_NAME.py --day-theme DAY_THEME --night-theme NIGHT_THEME --day-brightness DAY_BRIGHTNESS --night-brightness NIGHT_BRIGHTNESS
 
 [Install]
 WantedBy=default.target

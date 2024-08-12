@@ -9,10 +9,16 @@ echo ">>>>>>>>>> Select a theme from the list <<<<<<<<<<"
 lookandfeeltool -l
 echo ===================
 
-read -p "Day Theme: " _DAY_
-read -p "Night Theme: " _NIGHT_
+read -p "Day Theme: " _DAY_THEME_
+read -p "Night Theme: " _NIGHT_THEME_
+read -p "Day Brightness: " _DAY_BRIGHTNESS_
+read -p "Night Brightness: " _NIGHT_BRIGHTNESS_
 _SERVICE_='kde-auto-day-night-mode'
 
-sed "s/DAY/${_DAY_}/" systemd.service.in | sed "s/NIGHT/${_NIGHT_}/" | sed "s/SERVICE_NAME/${_SERVICE_}/" > systemd.service
+sed -e "s/SERVICE_NAME/${_SERVICE_}/"\
+ -e "s/DAY_THEME/${_DAY_THEME_}/"\
+  -e "s/NIGHT_THEME/${_NIGHT_THEME_}/"\
+  -e "s/DAY_BRIGHTNESS/${_DAY_BRIGHTNESS_}/"\
+  -e "s/NIGHT_BRIGHTNESS/${_NIGHT_BRIGHTNESS_}/" systemd.service.in > systemd.service
 sed "s/SERVICE_NAME/${_SERVICE_}/" systemd.timer.in > systemd.timer
 sed "s/SERVICE_NAME/${_SERVICE_}/" Makefile.in > Makefile

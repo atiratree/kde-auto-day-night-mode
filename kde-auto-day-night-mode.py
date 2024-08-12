@@ -7,9 +7,12 @@ import argparse
 import re
 import logging
 import os
+import subprocess
+import sys
 from datetime import datetime, time, timezone, timedelta
 from math import cos, sin, acos, asin, tan, degrees as deg, radians as rad
 from time import timezone as timezone_offset
+from ddcci_plasmoid_backend import ddcci
 
 
 class Sun:
@@ -171,8 +174,7 @@ class Theme:
             if self.__debug:
                 print('No theme given. Nothing to do.')
         elif new_theme != self.__get_current_kde_theme():
-            if self.__debug:
-                print('Switching theme to: "%s"' % new_theme)
+            print('Switching theme to: "%s"' % new_theme)
             os.system('lookandfeeltool -a %s' % new_theme)
         elif self.__debug:
             print('Current theme is already "%s". Nothing to do.' % new_theme)
@@ -188,6 +190,49 @@ class Theme:
             .replace('\n', '')
 
 
+class Brightness:
+    def __init__(self, day_brightness, night_brightness):
+        self.__day_brightness = day_brightness
+        self.__night_brightness = night_brightness
+
+    def set_brightness(self, is_day):
+        new_brightness = self.__night_brightness
+        if is_day:
+            new_brightness = self.__day_brightness
+
+        self.set_brightness_ddcci(new_brightness)
+        self.set_brightness_acpi(new_brightness, is_day)
+
+    @staticmethod
+    def set_brightness_ddcci(new_brightness):
+        for monitor_data in ddcci.detect():
+            if new_brightness == monitor_data['brightness']:
+                continue
+
+            print(f'Setting brightness to {new_brightness} for monitor "{monitor_data['name']}" ({monitor_data['bus_id']})')
+            ddcci.set_brightness(monitor_data['bus_id'], new_brightness)
+
+    @staticmethod
+    def set_brightness_acpi(new_brightness, is_day):
+        dbus_brightness_service = "local.org_kde_powerdevil"
+        dbus_brightness_path = "/org/kde/Solid/PowerManagement/Actions/BrightnessControl"
+        brightness_result = subprocess.run(['qdbus6', dbus_brightness_service, dbus_brightness_path, 'brightness'], stdout=subprocess.PIPE)
+        brightness = int(brightness_result.stdout.decode('utf-8'))
+        max_brightness_result = subprocess.run(['qdbus6', dbus_brightness_service, dbus_brightness_path, 'brightnessMax'], stdout=subprocess.PIPE)
+        max_brightness = int(max_brightness_result.stdout.decode('utf-8'))
+
+        new_brightness_value = int((max_brightness / 100 * new_brightness) + 0.5)
+        if brightness == new_brightness_value:
+            return
+        if is_day and brightness > new_brightness_value:
+            print(f'Allowing high ACPI brightness override during the day on the laptop screen!')
+            return
+
+        print(f'Setting ACPI brightness from {brightness} to {new_brightness_value} over dbus')
+        subprocess.run(['qdbus6', dbus_brightness_service, dbus_brightness_path, 'setBrightness',
+                        str(new_brightness_value)])
+
+
 def get_command_line_args():
     parser = argparse.ArgumentParser(
         description="Automatically switches day and night themes based on the current time of day.",
@@ -195,6 +240,8 @@ def get_command_line_args():
     )
     parser.add_argument('-d', '--day-theme', type=str, help='set a day theme')
     parser.add_argument('-n', '--night-theme', type=str, help='set a night theme')
+    parser.add_argument('-b', '--day-brightness', type=int, default=75, help='set a day brightness')
+    parser.add_argument('-s', '--night-brightness', type=int, default=30, help='set a night brightness')
     parser.add_argument('-l', '--location-redetect', action='store_true', help='discards the previously saved location and attempts detection again')
     parser.add_argument('-v', '--verbose', action='store_true', help='print location and sun event times')
     parser.add_argument(
@@ -215,18 +262,31 @@ def get_command_line_args():
     return vars(parser.parse_args())
 
 
+def verify_brightness_value(brightness):
+    if brightness < 0 or brightness > 100:
+        print(
+            f"Illegal value {brightness} for `brightness`, must be between 0 and 100"
+        )
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     argv = get_command_line_args()
     debug = argv.get('verbose')
     day_theme = argv.get('day_theme', '')
-    force_detect_location = argv.get('location_redetect')
     night_theme = argv.get('night_theme', '')
+    day_brightness = argv.get('day_brightness', '')
+    verify_brightness_value(day_brightness)
+    night_brightness = argv.get('night_brightness', '')
+    verify_brightness_value(night_brightness)
+    force_detect_location = argv.get('location_redetect')
     location_cache_file = argv.get('location_cache_file')
     where_am_i = argv.get('where_am_i')
 
     location = Location(5, force_detect_location, location_cache_file, where_am_i)
     sun = Sun(location.get_local_time(), location.get_latitude(), long=location.get_longitude())
-    theme = Theme(day_theme, night_theme, debug).auto_select_kde_theme(sun.is_day())
+    Theme(day_theme, night_theme, debug).auto_select_kde_theme(sun.is_day())
+    Brightness(day_brightness, night_brightness).set_brightness(sun.is_day())
 
     if debug:
         print('location: %f, %f' % (location.get_latitude(), location.get_longitude()))

@@ -200,14 +200,21 @@ class Brightness:
         if is_day:
             new_brightness = self.__day_brightness
 
-        self.set_brightness_ddcci(new_brightness)
+        self.set_brightness_ddcci(new_brightness, is_day)
         self.set_brightness_acpi(new_brightness, is_day)
 
     @staticmethod
-    def set_brightness_ddcci(new_brightness):
+    def set_brightness_ddcci(new_brightness, is_day):
         for monitor_data in ddcci.detect():
-            if new_brightness == monitor_data['brightness']:
+            brightness = monitor_data['brightness']
+            if brightness == new_brightness:
                 continue
+            if is_day and brightness > new_brightness:
+                print(f'Allowing high ACPI brightness override during the day on the ddcci monitor!')
+                return
+            if not is_day and brightness < new_brightness:
+                print(f'Allowing low ACPI brightness override during the night on the ddcci monitor!')
+                return
 
             print(f'Setting brightness to {new_brightness} for monitor "{monitor_data['name']}" ({monitor_data['bus_id']})')
             ddcci.set_brightness(monitor_data['bus_id'], new_brightness)
@@ -225,7 +232,10 @@ class Brightness:
         if brightness == new_brightness_value:
             return
         if is_day and brightness > new_brightness_value:
-            print(f'Allowing high ACPI brightness override during the day on the laptop screen!')
+            print(f'Allowing high ACPI brightness override during the day on the laptop monitor!')
+            return
+        if not is_day and brightness < new_brightness_value:
+            print(f'Allowing low ACPI brightness override during the night on the laptop monitor!')
             return
 
         print(f'Setting ACPI brightness from {brightness} to {new_brightness_value} over dbus')

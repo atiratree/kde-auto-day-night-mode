@@ -210,10 +210,12 @@ class Brightness:
             if brightness == new_brightness:
                 continue
             if is_day and brightness > new_brightness:
-                print(f'Allowing high ACPI brightness override during the day on the ddcci monitor!')
+                print(f'Allowing high brightness override during the day on the "{monitor_data['name']}" monitor'
+                      f' (ddcci)!')
                 return
             if not is_day and brightness < new_brightness:
-                print(f'Allowing low ACPI brightness override during the night on the ddcci monitor!')
+                print(f'Allowing low brightness override during the night on the "{monitor_data['name']}" monitor'
+                      f' (ddcci)!')
                 return
 
             print(f'Setting brightness to {new_brightness} for monitor "{monitor_data['name']}" ({monitor_data['bus_id']})')
@@ -232,10 +234,10 @@ class Brightness:
         if brightness == new_brightness_value:
             return
         if is_day and brightness > new_brightness_value:
-            print(f'Allowing high ACPI brightness override during the day on the laptop monitor!')
+            print(f'Allowing high brightness override during the day on the laptop monitor (ACPI)!')
             return
         if not is_day and brightness < new_brightness_value:
-            print(f'Allowing low ACPI brightness override during the night on the laptop monitor!')
+            print(f'Allowing low brightness override during the night on the laptop monitor (ACPI)!')
             return
 
         print(f'Setting ACPI brightness from {brightness} to {new_brightness_value} over dbus')

@@ -2,8 +2,8 @@
 Description=Runs the day/night theme switcher every 10 minutes
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=10min
+OnBootSec=1min
+OnUnitActiveSec=5min
 Unit=SERVICE_NAME.service
 
 [Install]

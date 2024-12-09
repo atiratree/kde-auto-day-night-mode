@@ -9,11 +9,10 @@ A simple Python script for selecting and automatic switching of day and night th
 	- Debian: `sudo apt-get install geoclue-2.0`
 - Install `ddcutil` package and add the desired user to `i2c` group.
   - ArchLinux: `pacman -S ddcutil && sudo usermod -aG i2c <username>`
-- Install `qt6-tools-desktop` package.
-  - ArchLinux: `yay -S ddcutil`
+- Install `qt6-tools-desktop` packages.
+  - ArchLinux: `yay -S qt6-tools-desktop`
 - Install `ddcci-plasmoid-backend` package. See https://github.com/davidhi7/ddcci-plasmoid for more information.
   - Python: `pip install --break-system-packages --user ddcci-plasmoid-backend`
-    qt6-tools-desktop
 
 ## Install and Run Automatically
 Use the commands below to install as a Systemd service and a timer. You will be prompted to select a day/night theme and brightness. If you need to set any extra options, read the [Running Manually](#running-manually) section.
